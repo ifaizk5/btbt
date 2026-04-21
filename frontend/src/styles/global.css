@@ -1,0 +1,190 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+:root {
+  --ink: #0a0a0a;
+  --paper: #ececec;
+  --electric-blue: #5f94e5;
+  --neon-lime: #d3f050;
+  --acid-orange: #ff7c2b;
+  --vivid-purple: #6a50ea;
+  --hard-shadow: 10px 10px 0px var(--ink);
+  --hard-shadow-sm: 6px 6px 0px var(--ink);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Space Grotesk', 'Trebuchet MS', sans-serif;
+  background:
+    linear-gradient(90deg, rgba(95, 148, 229, 0.22) 1px, transparent 1px),
+    linear-gradient(rgba(95, 148, 229, 0.22) 1px, transparent 1px),
+    var(--paper);
+  background-size: 56px 56px, 56px 56px, auto;
+  color: var(--ink);
+  font-weight: 500;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nb-shell {
+  position: relative;
+}
+
+.nb-shell::before,
+.nb-shell::after {
+  content: '';
+  position: fixed;
+  width: 220px;
+  height: 220px;
+  border: 4px solid var(--ink);
+  z-index: -1;
+}
+
+.nb-shell::before {
+  top: -70px;
+  right: -80px;
+  background: var(--acid-orange);
+  transform: rotate(14deg);
+}
+
+.nb-shell::after {
+  bottom: -80px;
+  left: -60px;
+  background: var(--neon-lime);
+  transform: rotate(-12deg);
+}
+
+.text-nb-heading {
+  font-family: 'Archivo Black', 'Impact', sans-serif;
+  @apply text-nb-3xl uppercase tracking-tight;
+  line-height: 0.93;
+}
+
+.text-nb-subheading {
+  font-family: 'Archivo Black', 'Impact', sans-serif;
+  @apply text-nb-2xl uppercase;
+}
+
+.text-nb-title {
+  font-family: 'Archivo Black', 'Impact', sans-serif;
+  @apply text-nb-xl uppercase;
+}
+
+.btn-nb {
+  @apply px-4 py-3 uppercase border-4 border-nb-black bg-nb-white text-nb-black;
+  @apply cursor-pointer transition-transform;
+  font-weight: 700;
+  box-shadow: var(--hard-shadow-sm);
+}
+
+.btn-nb:hover {
+  transform: translate(-3px, -3px);
+}
+
+.btn-nb:active {
+  transform: translate(0, 0);
+  box-shadow: 3px 3px 0px var(--ink);
+}
+
+.btn-nb-primary {
+  @apply btn-nb text-nb-white;
+  background: linear-gradient(130deg, #05172f 0%, #073162 100%);
+}
+
+.btn-nb-secondary {
+  @apply btn-nb text-nb-black;
+  background: linear-gradient(130deg, #e4d4ff 0%, #b89ef8 100%);
+}
+
+.btn-nb-success {
+  @apply btn-nb bg-nb-lime text-nb-black;
+}
+
+.card-nb {
+  @apply p-6 border-4 border-nb-black bg-nb-white;
+  box-shadow: var(--hard-shadow);
+}
+
+.input-nb {
+  @apply w-full px-4 py-3 border-4 border-nb-black bg-nb-white;
+  @apply focus:outline-none transition-transform;
+  font-weight: 700;
+}
+
+.input-nb:focus {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px var(--ink);
+}
+
+.nb-badge {
+  @apply inline-flex items-center px-3 py-2 border-2 border-nb-black uppercase text-xs;
+  font-weight: 700;
+  background: var(--neon-lime);
+}
+
+.nb-marquee {
+  @apply border-y-4 border-nb-black bg-nb-yellow overflow-hidden whitespace-nowrap;
+}
+
+.nb-marquee-track {
+  display: inline-block;
+  padding: 10px 0;
+  animation: nb-marquee 22s linear infinite;
+}
+
+.nb-marquee-item {
+  @apply mx-6 uppercase;
+  font-family: 'Archivo Black', 'Impact', sans-serif;
+}
+
+.nb-card-tilt {
+  transform: rotate(-1.3deg);
+}
+
+.nb-card-tilt-alt {
+  transform: rotate(1.2deg);
+}
+
+@keyframes nb-marquee {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    background-size: 32px 32px, 32px 32px, auto;
+  }
+
+  .text-nb-heading {
+    @apply text-nb-2xl;
+  }
+
+  .btn-nb {
+    @apply px-3 py-2 text-sm;
+  }
+
+  .card-nb {
+    @apply p-4 border-4;
+    box-shadow: 6px 6px 0px var(--ink);
+  }
+
+  .nb-shell::before,
+  .nb-shell::after {
+    display: none;
+  }
+}
