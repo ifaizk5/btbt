@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { productAPI, wishlistAPI } from '../api/index.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { productAPI } from '../api/index.js';
 import { addItem } from '../redux/slices/cartSlice.js';
-import { resolveMediaUrl } from '../utils/media.js';
+import { getProductImageAlt, getProductImageUrl } from '../utils/productImage.js';
+import { selectWishlistItems, toggleWishlistItem } from '../redux/slices/wishlistSlice.js';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const wishlistItems = useSelector(selectWishlistItems);
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isInWishlist, setIsInWishlist] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -32,45 +33,38 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    if (product) {
-      dispatch(addItem({
+    if (!product) return;
+
+    dispatch(
+      addItem({
         product,
-        quantity: parseInt(quantity),
+        quantity: parseInt(quantity, 10),
         variant: null,
-      }));
-      alert('Added to cart!');
-    }
+      })
+    );
+    alert('Added to cart!');
   };
 
   const handleToggleWishlist = async () => {
-    try {
-      if (isInWishlist) {
-        await wishlistAPI.remove(id);
-        setIsInWishlist(false);
-      } else {
-        await wishlistAPI.add({ productId: id });
-        setIsInWishlist(true);
-      }
-    } catch (err) {
-      console.error('Failed to toggle wishlist');
-    }
+    if (!product) return;
+    dispatch(toggleWishlistItem(product));
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-nb-white flex items-center justify-center">
-        <p className="text-nb-lg font-bold uppercase">Loading...</p>
+      <div className="premium-shell min-h-screen flex items-center justify-center">
+        <p className="premium-meta">Loading product</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-nb-white flex items-center justify-center">
-        <div className="card-nb text-center">
-          <p className="text-nb-lg font-bold uppercase text-nb-red mb-6">{error}</p>
-          <button onClick={() => navigate('/')} className="btn-nb">
-            Go Back
+      <div className="premium-shell min-h-screen flex items-center justify-center px-4">
+        <div className="premium-card max-w-lg p-6 text-center md:p-8">
+          <p className="premium-meta text-[#8f5c4e]">{error}</p>
+          <button onClick={() => navigate('/')} className="premium-button premium-button--ghost mt-6 px-5 py-3">
+            Go back
           </button>
         </div>
       </div>
@@ -79,99 +73,101 @@ export default function ProductDetailPage() {
 
   if (!product) return null;
 
+  const isInWishlist = wishlistItems.some((item) => item._id === product._id);
+
   return (
-    <div className="min-h-screen bg-nb-white p-8">
-      <div className="container mx-auto">
+    <div className="premium-shell min-h-screen">
+      <div className="premium-container py-8 lg:py-12">
         <button
           onClick={() => navigate('/')}
-          className="btn-nb mb-8"
+          className="premium-button premium-button--ghost mb-8 px-5 py-3"
         >
-          ← Back to Shop
+          Back to shop
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Product Image */}
-          <div className="card-nb bg-nb-blue flex items-center justify-center h-96 overflow-hidden">
-            <img
-              src={resolveMediaUrl(product.images?.[0]?.url)}
-              alt={product.images?.[0]?.alt || product.name}
-              className="h-full w-full object-contain"
-            />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_0.95fr]">
+          <div className="premium-card premium-card--image overflow-hidden">
+            <div className="flex min-h-[34rem] items-center justify-center bg-[linear-gradient(180deg,#f3ede3_0%,#fbf8f3_100%)] p-6 md:p-10">
+              <img
+                src={getProductImageUrl(product)}
+                alt={getProductImageAlt(product)}
+                className="max-h-[30rem] w-full object-contain transition-transform duration-700 ease-in-out hover:scale-[1.02]"
+                onError={(e) => {
+                  e.currentTarget.src = '/coffee_mug.png';
+                }}
+              />
+            </div>
           </div>
 
-          {/* Product Info */}
-          <div>
-            <h1 className="text-nb-heading mb-4 text-nb-black">{product.name}</h1>
+          <div className="space-y-6">
+            <div>
+              <div className="premium-kicker">Product detail</div>
+              <h1 className="premium-display mt-3 text-[clamp(3rem,6vw,5.5rem)]">{product.name}</h1>
+            </div>
 
-            <div className="card-nb mb-6">
-              <p className="text-nb-lg font-bold text-nb-red mb-4">
-                ₨ {product.price.toLocaleString()}
-              </p>
+            <div className="premium-card p-6 md:p-8">
+              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--color-line)] pb-5">
+                <div>
+                  <div className="premium-meta">Price</div>
+                  <p className="mt-2 text-[2rem] font-semibold tracking-[-0.04em] text-[var(--color-text)]">
+                    ₨ {product.price.toLocaleString()}
+                  </p>
+                </div>
+                <p className="premium-meta text-right">
+                  Stock {product.stock > 0 ? `${product.stock} available` : 'Out of stock'}
+                </p>
+              </div>
 
-              <p className="text-nb-sm font-bold uppercase mb-6 text-nb-blue">
-                Stock: {product.stock > 0 ? `${product.stock} Available` : 'Out of Stock'}
-              </p>
-
-              <p className="text-nb-base leading-relaxed mb-6">
-                {product.description}
-              </p>
+              <p className="premium-copy mt-5 text-[1rem] leading-8">{product.description}</p>
 
               {product.rating.count > 0 && (
-                <div className="flex gap-4 items-center mb-6">
-                  <div className="flex gap-1">
-                    {'⭐'.repeat(Math.round(product.rating.average))}
-                  </div>
-                  <span className="text-nb-sm font-bold">
-                    {product.rating.average.toFixed(1)} ({product.rating.count} reviews)
+                <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-[var(--color-line)] pt-5">
+                  <div className="flex gap-1 text-sm">{'⭐'.repeat(Math.round(product.rating.average))}</div>
+                  <span className="premium-meta">
+                    {product.rating.average.toFixed(1)} / 5 from {product.rating.count} reviews
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Quantity & Actions */}
-            <div className="card-nb bg-nb-yellow mb-6">
-              <label className="block text-nb-sm uppercase font-bold mb-4">Quantity</label>
-              <div className="flex gap-4 items-center mb-6">
-                <input
-                  type="number"
-                  min="1"
-                  max={product.stock}
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  className="input-nb w-24"
-                />
+            <div className="premium-card p-6 md:p-8">
+              <div className="grid gap-4 md:grid-cols-[160px_1fr] md:items-end">
+                <div>
+                  <label className="premium-label">Quantity</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={product.stock}
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="premium-input"
+                  />
+                </div>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.stock === 0}
+                  className="premium-button w-full px-5 py-3"
+                >
+                  {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                </button>
               </div>
 
               <button
-                onClick={handleAddToCart}
-                disabled={product.stock === 0}
-                className="btn-nb-success w-full mb-4"
-              >
-                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-              </button>
-
-              <button
                 onClick={handleToggleWishlist}
-                className={`w-full py-3 border-4 border-nb-black font-bold uppercase ${
-                  isInWishlist
-                    ? 'bg-nb-red text-nb-white'
-                    : 'bg-nb-white text-nb-black hover:bg-nb-red hover:text-nb-white'
-                } transition-colors shadow-nb-md`}
+                className={`premium-button premium-button--ghost mt-4 w-full px-5 py-3 ${
+                  isInWishlist ? 'border-[var(--color-text)]' : ''
+                }`}
               >
-                {isInWishlist ? '❤️ Saved' : '🤍 Save to Wishlist'}
+                {isInWishlist ? '♥ Saved to wishlist' : '♡ Save to wishlist'}
               </button>
             </div>
 
-            {/* Product Details */}
             {product.tags && product.tags.length > 0 && (
-              <div className="card-nb">
-                <h3 className="text-nb-sm uppercase font-bold mb-4">Tags</h3>
-                <div className="flex flex-wrap gap-2">
+              <div className="premium-card p-6 md:p-8">
+                <div className="premium-meta">Tags</div>
+                <div className="mt-4 flex flex-wrap gap-2">
                   {product.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-2 border-2 border-nb-black bg-nb-lime text-nb-black text-xs font-bold uppercase"
-                    >
+                    <span key={tag} className="premium-pill px-4 py-2 text-[0.68rem]">
                       {tag}
                     </span>
                   ))}

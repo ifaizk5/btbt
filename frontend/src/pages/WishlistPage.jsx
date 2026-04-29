@@ -1,43 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { wishlistAPI } from '../api/index.js';
-import { setCart } from '../redux/slices/cartSlice.js';
 import { addItem } from '../redux/slices/cartSlice.js';
+import { removeWishlistItem, selectWishlistItems } from '../redux/slices/wishlistSlice.js';
+import ProductCard from '../components/ProductCard.jsx';
+import { mediaAPI } from '../api/index.js';
 
 export default function WishlistPage() {
   const dispatch = useDispatch();
-  const { accessToken } = useSelector((state) => state.auth);
-  const [wishlist, setWishlist] = useState(null);
+  const wishlist = useSelector(selectWishlistItems);
   const [isLoading, setIsLoading] = useState(true);
+  const [listedProductImages, setListedProductImages] = useState([]);
 
   useEffect(() => {
-    if (accessToken) {
-      fetchWishlist();
-    }
-  }, [accessToken]);
+    fetchListedProductImages();
+    setIsLoading(false);
+  }, []);
 
-  const fetchWishlist = async () => {
+  const fetchListedProductImages = async () => {
     try {
-      setIsLoading(true);
-      const { data } = await wishlistAPI.get();
-      setWishlist(data.data);
+      const { data } = await mediaAPI.getListedProducts();
+      setListedProductImages(data.data.files || []);
     } catch (err) {
-      console.error('Failed to load wishlist');
-    } finally {
-      setIsLoading(false);
+      setListedProductImages([]);
     }
   };
 
   const handleRemove = async (productId) => {
-    try {
-      await wishlistAPI.remove(productId);
-      setWishlist({
-        ...wishlist,
-        products: wishlist.products.filter((p) => p.product._id !== productId),
-      });
-    } catch (err) {
-      console.error('Failed to remove from wishlist');
-    }
+    dispatch(removeWishlistItem({ productId }));
   };
 
   const handleAddToCart = (product) => {
@@ -49,70 +38,48 @@ export default function WishlistPage() {
     alert('Added to cart!');
   };
 
-  if (!accessToken) {
-    return (
-      <div className="min-h-screen bg-nb-white flex items-center justify-center">
-        <div className="card-nb text-center">
-          <p className="text-nb-lg font-bold uppercase mb-6">Please login to view wishlist</p>
-          <a href="/login" className="btn-nb-primary">
-            Go to Login
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-nb-white flex items-center justify-center">
-        <p className="text-nb-lg font-bold uppercase">Loading...</p>
+      <div className="premium-shell min-h-screen flex items-center justify-center">
+        <p className="premium-meta">Loading wishlist</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-nb-white p-8">
-      <div className="container mx-auto">
-        <h1 className="text-nb-heading mb-8 text-nb-red">❤️ Wishlist</h1>
+    <div className="premium-shell min-h-screen">
+      <div className="premium-container py-8 lg:py-12">
+        <div className="max-w-3xl">
+          <div className="premium-kicker">Saved objects</div>
+          <h1 className="premium-display mt-3 text-[clamp(3rem,6vw,5.5rem)]">Wishlist</h1>
+        </div>
 
-        {!wishlist || wishlist.products.length === 0 ? (
-          <div className="card-nb text-center">
-            <p className="text-nb-lg font-bold uppercase mb-6">Your wishlist is empty</p>
-            <a href="/" className="btn-nb">
+        {!wishlist || wishlist.length === 0 ? (
+          <div className="premium-card mt-8 max-w-xl p-6 text-center md:p-8">
+            <p className="premium-meta">Your wishlist is empty</p>
+            <a href="/" className="premium-button mt-6 px-5 py-3">
               Continue Shopping
             </a>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {wishlist.products.map((item) => (
-              <div key={item.product._id} className="card-nb hover:shadow-nb-xl transition">
-                <div className="h-48 bg-nb-purple mb-4 border-4 border-nb-black flex items-center justify-center">
-                  <span className="text-nb-white text-nb-sm uppercase font-bold text-center px-2">
-                    {item.product.name.substring(0, 20)}...
-                  </span>
-                </div>
-                <h3 className="text-nb-sm font-bold uppercase mb-2 line-clamp-2">
-                  {item.product.name}
-                </h3>
-                <p className="text-nb-lg font-bold text-nb-red mb-4">
-                  ₨ {item.product.price.toLocaleString()}
-                </p>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleAddToCart(item.product)}
-                    className="btn-nb-success w-full"
-                  >
-                    Add to Cart
-                  </button>
-                  <button
-                    onClick={() => handleRemove(item.product._id)}
-                    className="btn-nb-primary w-full"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="premium-grid premium-grid--editorial mt-8">
+            {wishlist.map((product, index) => {
+              const image = listedProductImages.length > 0
+                ? listedProductImages[index % listedProductImages.length]
+                : '/coffee_mug.png';
+
+              return (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  image={image}
+                  isWishlisted={true}
+                  onAddToCart={handleAddToCart}
+                  onToggleWishlist={(wishlistProduct) => handleRemove(wishlistProduct._id)}
+                  className="lg:col-span-4"
+                />
+              );
+            })}
           </div>
         )}
       </div>

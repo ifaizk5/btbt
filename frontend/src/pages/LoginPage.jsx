@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../api/index.js';
-import { setUser, setTokens, setError, setLoading } from '../redux/slices/authSlice.js';
+import { setUser, setTokens, setError } from '../redux/slices/authSlice.js';
 
 export default function LoginPage() {
   const dispatch = useDispatch();
@@ -23,12 +23,14 @@ export default function LoginPage() {
     try {
       const { data } = await authAPI.login(formData);
 
-      dispatch(setTokens({
-        accessToken: data.data.accessToken,
-        refreshToken: data.data.refreshToken,
-      }));
+      dispatch(
+        setTokens({
+          accessToken: data.data.accessToken,
+          refreshToken: data.data.refreshToken,
+        })
+      );
 
-      dispatch(setUser({ email: formData.email }));
+      dispatch(setUser({ email: formData.email, lastLoginAt: new Date().toISOString() }));
       navigate('/');
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed';
@@ -40,58 +42,77 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-nb-yellow flex items-center justify-center p-4">
-      <div className="card-nb max-w-md w-full">
-        <h1 className="text-nb-heading mb-8 text-nb-red">Login</h1>
-
-        {error && (
-          <div className="mb-4 border-4 border-nb-red bg-nb-red p-4 text-nb-white font-bold">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="premium-shell min-h-screen flex items-center justify-center px-4 py-10">
+      <div className="grid w-full max-w-5xl gap-0 overflow-hidden rounded-[32px] border border-[var(--color-line)] bg-[rgba(255,253,250,0.88)] shadow-[0_20px_80px_rgba(26,26,26,0.06)] lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="hidden flex-col justify-between border-r border-[var(--color-line)] bg-[linear-gradient(180deg,#f3ede3_0%,#fbf8f3_100%)] p-8 lg:flex">
           <div>
-            <label className="block text-nb-sm uppercase font-bold mb-2">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="input-nb"
-              placeholder="you@example.com"
-            />
+            <div className="premium-kicker">Member access</div>
+            <h1 className="premium-display mt-4 text-[clamp(3rem,6vw,5rem)]">Welcome back.</h1>
+            <p className="premium-copy mt-5 max-w-md">
+              Continue your brewing ritual with a quiet, frictionless sign-in.
+            </p>
           </div>
-
-          <div>
-            <label className="block text-nb-sm uppercase font-bold mb-2">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="input-nb"
-              placeholder="••••••••"
-            />
+          <div className="space-y-3">
+            <div className="premium-divider" />
+            <p className="premium-meta">Bean There, Brew That</p>
+            <p className="text-sm text-[var(--color-muted)]">
+              Premium equipment, careful language, and a checkout flow designed to feel calm.
+            </p>
           </div>
+        </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="btn-nb-primary w-full"
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
+        <div className="p-6 md:p-8 lg:p-10">
+          <div className="premium-kicker">Login</div>
+          <h1 className="premium-display mt-4 text-[clamp(2.6rem,5vw,4.6rem)]">Sign in</h1>
 
-        <p className="mt-6 text-center text-nb-sm">
-          Don't have an account?{' '}
-          <a href="/register" className="font-bold underline text-nb-red hover:no-underline">
-            Register here
-          </a>
-        </p>
+          {error && (
+            <div className="mt-6 rounded-[18px] border border-[#d8b1a8] bg-[#f8efec] p-4 text-sm text-[#7b3c30]">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div>
+              <label className="premium-label">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="premium-input"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="premium-label">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="premium-input"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button type="submit" disabled={isLoading} className="premium-button w-full px-5 py-3">
+              {isLoading ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-[var(--color-muted)]">
+            Don't have an account?{' '}
+            <Link
+              to="/register"
+              className="font-semibold text-[var(--color-text)] underline decoration-[var(--color-accent)] decoration-1 underline-offset-4 hover:decoration-transparent"
+            >
+              Register here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,164 +1,133 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { cartAPI } from '../api/index.js';
-import { setCart, removeItem, updateItem } from '../redux/slices/cartSlice.js';
+import { removeItem, updateItem } from '../redux/slices/cartSlice.js';
+import { getProductImageAlt, getProductImageUrl } from '../utils/productImage.js';
 
 export default function CartPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items } = useSelector((state) => state.cart);
-  const { accessToken } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (accessToken) {
-      fetchCart();
-    }
-  }, [accessToken]);
-
-  const fetchCart = async () => {
-    try {
-      const { data } = await cartAPI.get();
-      dispatch(setCart(data.data));
-    } catch (err) {
-      console.error('Failed to load cart');
-    }
-  };
-
-  const handleRemoveItem = async (productId) => {
-    try {
-      await cartAPI.remove(productId);
-      dispatch(removeItem({ productId }));
-    } catch (err) {
-      console.error('Failed to remove item');
-    }
+  const handleRemoveItem = (productId, variant) => {
+    dispatch(removeItem({ productId, variant }));
   };
 
   const handleUpdateQuantity = async (productId, quantity) => {
-    try {
-      await cartAPI.update(productId, { quantity });
-      dispatch(updateItem({ productId, quantity }));
-    } catch (err) {
-      console.error('Failed to update quantity');
-    }
+    dispatch(updateItem({ productId, quantity }));
   };
 
-  const calculateTotal = () => {
-    return items.reduce((total, item) => {
-      return total + (item.product?.price || 0) * item.quantity;
-    }, 0);
-  };
-
-  if (!accessToken) {
-    return (
-      <div className="min-h-screen bg-nb-white flex items-center justify-center">
-        <div className="card-nb text-center">
-          <p className="text-nb-lg font-bold uppercase mb-6">Please login to view your cart</p>
-          <Link to="/login" className="btn-nb-primary">
-            Go to Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const calculateTotal = () =>
+    items.reduce((total, item) => total + (item.product?.price || 0) * item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-nb-white p-8">
-      <div className="container mx-auto">
-        <h1 className="text-nb-heading mb-8 text-nb-blue">Shopping Cart</h1>
+    <div className="premium-shell min-h-screen">
+      <div className="premium-container py-8 lg:py-12">
+        <div className="max-w-3xl">
+          <div className="premium-kicker">Order review</div>
+          <h1 className="premium-display mt-3 text-[clamp(3rem,6vw,5.5rem)]">Shopping Cart</h1>
+        </div>
 
         {items.length === 0 ? (
-          <div className="card-nb text-center">
-            <p className="text-nb-lg font-bold uppercase mb-6">Your cart is empty</p>
-            <Link to="/" className="btn-nb">
+          <div className="premium-card mt-8 max-w-xl p-6 text-center md:p-8">
+            <p className="premium-meta">Your cart is empty</p>
+            <Link to="/" className="premium-button mt-6 px-5 py-3">
               Continue Shopping
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <div key={item.product._id} className="card-nb">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="text-nb-sm font-bold uppercase mb-2">
-                          {item.product.name}
-                        </h3>
-                        <p className="text-nb-lg font-bold text-nb-red mb-4">
-                          ₨ {item.product.price.toLocaleString()}
-                        </p>
-                      </div>
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_380px] lg:items-start">
+            <section className="space-y-4">
+              {items.map((item) => (
+                <article key={item.product._id} className="premium-card p-4 md:p-5">
+                  <div className="grid gap-5 md:grid-cols-[96px_1fr_auto] md:items-center">
+                    <div className="overflow-hidden rounded-[18px] border border-[var(--color-line)] bg-[var(--color-surface-alt)]">
+                      <img
+                        src={getProductImageUrl(item.product)}
+                        alt={getProductImageAlt(item.product)}
+                        className="h-24 w-24 object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = '/coffee_mug.png';
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="premium-meta">{item.product.category}</div>
+                      <h3 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-[var(--color-text)]">
+                        {item.product.name}
+                      </h3>
+                      <p className="mt-3 text-sm text-[var(--color-muted)]">
+                        ₨ {item.product.price.toLocaleString()} each
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-start gap-3 md:items-end">
                       <button
-                        onClick={() => handleRemoveItem(item.product._id)}
-                        className="btn-nb-primary px-3 py-2 text-sm"
+                        onClick={() => handleRemoveItem(item.product._id, item.variant)}
+                        className="premium-button premium-button--ghost px-4 py-2"
                       >
                         Remove
                       </button>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <label className="text-nb-sm font-bold uppercase">Qty:</label>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--color-line)] pt-4">
+                    <div className="flex items-center gap-3">
+                      <label className="premium-meta">Qty</label>
                       <input
                         type="number"
                         min="1"
                         max="100"
                         value={item.quantity}
                         onChange={(e) =>
-                          handleUpdateQuantity(item.product._id, parseInt(e.target.value))
+                          handleUpdateQuantity(item.product._id, parseInt(e.target.value, 10))
                         }
-                        className="input-nb w-20"
+                        className="premium-input w-24"
                       />
-                      <p className="text-nb-sm font-bold">
-                        Subtotal: ₨ {(item.product.price * item.quantity).toLocaleString()}
-                      </p>
                     </div>
+                    <p className="premium-meta">
+                      Subtotal: ₨ {(item.product.price * item.quantity).toLocaleString()}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </div>
+                </article>
+              ))}
+            </section>
 
-            <div>
-              <div className="card-nb sticky top-8">
-                <h2 className="text-nb-title font-bold uppercase mb-6 pb-4 border-b-4 border-nb-black">
-                  Order Summary
-                </h2>
+            <aside className="premium-drawer sticky top-24 h-fit p-6 md:p-7 lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+              <div className="premium-kicker">Order summary</div>
+              <h2 className="premium-title mt-3 text-[clamp(2rem,3vw,3rem)]">Quiet checkout</h2>
 
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between text-nb-sm uppercase font-bold">
-                    <span>Subtotal:</span>
-                    <span>₨ {calculateTotal().toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-nb-sm uppercase font-bold">
-                    <span>Tax (17%):</span>
-                    <span>₨ {Math.round(calculateTotal() * 0.17).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-nb-sm uppercase font-bold">
-                    <span>Shipping:</span>
-                    <span>₨ 200</span>
-                  </div>
+              <div className="mt-6 space-y-4">
+                <div className="flex justify-between gap-4 text-sm text-[var(--color-muted)]">
+                  <span>Subtotal</span>
+                  <span>₨ {calculateTotal().toLocaleString()}</span>
                 </div>
-
-                <div className="border-t-4 border-b-4 border-nb-black py-4 mb-6">
-                  <div className="flex justify-between text-nb-lg font-bold uppercase">
-                    <span>Total:</span>
-                    <span className="text-nb-red">
-                      ₨ {(calculateTotal() + Math.round(calculateTotal() * 0.17) + 200).toLocaleString()}
-                    </span>
-                  </div>
+                <div className="flex justify-between gap-4 text-sm text-[var(--color-muted)]">
+                  <span>Tax (17%)</span>
+                  <span>₨ {Math.round(calculateTotal() * 0.17).toLocaleString()}</span>
                 </div>
-
-                <button
-                  onClick={() => navigate('/checkout')}
-                  className="btn-nb-success w-full mb-4"
-                >
-                  Proceed to Checkout
-                </button>
-
-                <Link to="/" className="btn-nb w-full text-center block">
-                  Continue Shopping
-                </Link>
+                <div className="flex justify-between gap-4 text-sm text-[var(--color-muted)]">
+                  <span>Shipping</span>
+                  <span>₨ 200</span>
+                </div>
               </div>
-            </div>
+
+              <div className="premium-divider my-6" />
+
+              <div className="flex justify-between gap-4 text-lg font-semibold tracking-[-0.03em] text-[var(--color-text)]">
+                <span>Total</span>
+                <span>₨ {(calculateTotal() + Math.round(calculateTotal() * 0.17) + 200).toLocaleString()}</span>
+              </div>
+
+              <button onClick={() => navigate('/checkout')} className="premium-button mt-6 w-full px-5 py-3">
+                Proceed to checkout
+              </button>
+
+              <Link to="/" className="premium-button premium-button--ghost mt-3 w-full px-5 py-3">
+                Continue shopping
+              </Link>
+            </aside>
           </div>
         )}
       </div>

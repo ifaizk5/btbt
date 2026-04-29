@@ -23,6 +23,11 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
     tags: [String],
+    imageUrl: {
+      type: String,
+      required: true,
+    },
+    imageAlt: String,
     images: [
       {
         url: String,

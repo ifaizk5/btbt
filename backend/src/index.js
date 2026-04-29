@@ -72,8 +72,22 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Local file storage serving
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+// Local file storage serving with CORS headers
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+}, express.static(path.join(__dirname, '../public/uploads'), {
+  maxAge: '1d',
+  etag: false,
+}));
 
 // Logging
 app.use(morgan('dev'));

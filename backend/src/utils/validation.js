@@ -38,6 +38,8 @@ export const productValidation = {
     cost: Joi.number().positive(),
     category: Joi.string().required(),
     tags: Joi.array().items(Joi.string()),
+    imageUrl: Joi.string().required(),
+    imageAlt: Joi.string().allow(''),
     stock: Joi.number().integer().min(0).required().messages(messages),
     variants: Joi.array().items(
       Joi.object({
@@ -54,6 +56,8 @@ export const productValidation = {
     cost: Joi.number().positive(),
     category: Joi.string(),
     tags: Joi.array().items(Joi.string()),
+    imageUrl: Joi.string(),
+    imageAlt: Joi.string().allow(''),
     stock: Joi.number().integer().min(0),
     variants: Joi.array().items(
       Joi.object({

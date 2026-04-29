@@ -1,7 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { readStorage, writeStorage } from '../../utils/storage.js';
+
+const CART_STORAGE_KEY = 'btbt:cart';
 
 const initialState = {
-  items: [],
+  items: readStorage(CART_STORAGE_KEY, []),
   isLoading: false,
   error: null,
 };
@@ -57,6 +60,10 @@ const cartSlice = createSlice({
     },
   },
 });
+
+export const persistCartState = (items) => {
+  writeStorage(CART_STORAGE_KEY, items);
+};
 
 export const { setCart, addItem, removeItem, updateItem, clearCart, setLoading, setError } =
   cartSlice.actions;
