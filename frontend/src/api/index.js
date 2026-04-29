@@ -47,3 +47,8 @@ export const wishlistAPI = {
   remove: (productId) => apiClient.delete(`/wishlist/${productId}`),
   clear: () => apiClient.delete('/wishlist'),
 };
+
+// Media APIs
+export const mediaAPI = {
+  getListedProducts: () => apiClient.get('/media/listed-products'),
+};

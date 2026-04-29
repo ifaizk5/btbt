@@ -34,13 +34,11 @@ const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRE || '30d',
   },
 
-  // AWS Configuration
-  aws: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_REGION || 'us-east-1',
-    s3Bucket: process.env.AWS_S3_BUCKET,
-    cloudfrontDomain: process.env.AWS_CLOUDFRONT_DOMAIN,
+  // Local Media Storage Configuration
+  storage: {
+    driver: process.env.STORAGE_DRIVER || 'local',
+    uploadDir: process.env.LOCAL_UPLOAD_DIR || 'backend/public/uploads',
+    mediaBaseUrl: process.env.MEDIA_BASE_URL || `http://localhost:${process.env.PORT || 5000}`,
   },
 
   // Store Configuration
@@ -71,8 +69,8 @@ if (config.nodeEnv === 'production') {
     'MONGODB_URI',
     'JWT_SECRET',
     'JWT_REFRESH_SECRET',
-    'AWS_ACCESS_KEY_ID',
-    'AWS_SECRET_ACCESS_KEY',
+    'STORAGE_DRIVER',
+    'LOCAL_UPLOAD_DIR',
   ];
 
   requiredVars.forEach((varName) => {

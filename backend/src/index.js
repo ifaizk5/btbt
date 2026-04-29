@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import connectDatabase from './config/database.js';
 import config from './config/config.js';
@@ -19,8 +21,11 @@ import productRoutes from './routes/productRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
+import mediaRoutes from './routes/mediaRoutes.js';
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Database Connection
 await connectDatabase();
@@ -33,6 +38,14 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) {
+        return callback(null, true);
+      }
+
+      const isLocalhostDevOrigin =
+        config.nodeEnv !== 'production' &&
+        /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+
+      if (isLocalhostDevOrigin) {
         return callback(null, true);
       }
 
@@ -59,6 +72,9 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+// Local file storage serving
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+
 // Logging
 app.use(morgan('dev'));
 app.use(requestLogger);
@@ -79,6 +95,7 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
+app.use('/api/v1/media', mediaRoutes);
 
 // 404 Handler
 app.use(notFoundHandler);

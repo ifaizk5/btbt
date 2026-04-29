@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { productAPI, wishlistAPI } from '../api/index.js';
 import { addItem } from '../redux/slices/cartSlice.js';
+import { resolveMediaUrl } from '../utils/media.js';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -90,10 +91,12 @@ export default function ProductDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Image */}
-          <div className="card-nb bg-nb-blue flex items-center justify-center h-96">
-            <span className="text-nb-white text-nb-lg font-bold uppercase text-center px-4">
-              {product.name}
-            </span>
+          <div className="card-nb bg-nb-blue flex items-center justify-center h-96 overflow-hidden">
+            <img
+              src={resolveMediaUrl(product.images?.[0]?.url)}
+              alt={product.images?.[0]?.alt || product.name}
+              className="h-full w-full object-contain"
+            />
           </div>
 
           {/* Product Info */}

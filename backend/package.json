@@ -14,7 +14,7 @@
     "lint": "eslint src --max-warnings 10",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write 'src/**/*.{js,json}'",
-    "seed": "node scripts/seed.js"
+    "seed": "node ../scripts/seed.js"
   },
   "keywords": [
     "MERN",
